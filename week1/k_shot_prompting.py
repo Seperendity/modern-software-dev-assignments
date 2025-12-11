@@ -7,7 +7,16 @@ load_dotenv()
 NUM_RUNS_TIMES = 5
 
 # TODO: Fill this in!
-YOUR_SYSTEM_PROMPT = ""
+YOUR_SYSTEM_PROMPT = """You are good at reversing words letter by letter. Your task is to reverse the order of letters in the given word exactly as instructed. Follow these steps strictly:
+1. Break down the word into each individual letter in the original order.
+2. Reverse those letters to form a new word.
+3. Output ONLY the reversed word, with no other text, punctuation, explanations, or spaces.
+
+Examples:
+- Input word: python → Output: nohtyp
+- Input word: hello → Output: olleh
+
+Do not add any introduction, conclusion, or extra characters. Just the reversed word."""
 
 USER_PROMPT = """
 Reverse the order of letters in the following word. Only output the reversed word, no other text:
