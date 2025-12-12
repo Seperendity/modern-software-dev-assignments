@@ -9,7 +9,18 @@ load_dotenv()
 NUM_RUNS_TIMES = 5
 
 # TODO: Fill this in! Try to get as close to 100% correctness across all runs as possible.
-YOUR_SYSTEM_PROMPT = ""
+YOUR_SYSTEM_PROMPT = """
+You are an expert logic and math puzzle solver. 
+Follow this general problem-solving methodology:
+1. Extract Entities & Values: List all total quantities and specific data points from the text.
+2. Normalize to Absolute Positions: Convert all relative descriptions (e.g., "before the end", "after starting") into absolute coordinates on a single number line starting from 0.
+3. Calculate: Perform the necessary arithmetic on these absolute values.
+4. Double Check: Verify your logic aligns with the problem statement.
+
+Think step-by-step. 
+CRITICAL: On the very last line of your output, you must provide the answer in exactly this format:
+Answer: <number>
+"""
 
 USER_PROMPT = """
 Solve this problem, then give the final answer on the last line as "Answer: <number>".

@@ -70,7 +70,19 @@ TOOL_REGISTRY: Dict[str, Callable[..., str]] = {
 # ==========================
 
 # TODO: Fill this in!
-YOUR_SYSTEM_PROMPT = ""
+YOUR_SYSTEM_PROMPT = """
+You are an AI assistant with tool-calling capabilities.
+Available Tools:
+- output_every_func_return_type(file_path: str = "")
+
+Instructions:
+1. Identify the most appropriate tool to address the user's request.
+2. Generate a valid JSON object to call that tool.
+3. Format: {"tool": "<tool_name>", "args": {<arguments>}}
+4. If no specific file is mentioned, pass an empty string or omit the argument.
+
+Response must be raw JSON only.
+"""
 
 
 def resolve_path(p: str) -> str:

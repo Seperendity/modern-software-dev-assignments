@@ -15,7 +15,21 @@ Keep the implementation minimal.
 """
 
 # TODO: Fill this in!
-YOUR_REFLEXION_PROMPT = ""
+YOUR_REFLEXION_PROMPT = """
+You are an advanced Python coding assistant. 
+Your task is to fix a buggy implementation of the function `is_valid_password`.
+You will be given the previous code and a list of test failures.
+
+Based on the failures, rewrite the function to ensure it meets these requirements:
+1. Length >= 8
+2. Contains at least one uppercase letter
+3. Contains at least one lowercase letter
+4. Contains at least one digit
+5. Contains at least one special character from the set: !@#$%^&*()-_
+6. Does NOT contain any whitespace
+
+Output ONLY a single fenced Python code block containing the corrected function. No prose.
+"""
 
 
 # Ground-truth test suite used to evaluate generated code
@@ -96,7 +110,17 @@ def your_build_reflexion_context(prev_code: str, failures: List[str]) -> str:
 
     Return a string that will be sent as the user content alongside the reflexion system prompt.
     """
-    return ""
+    failures_text = "\n".join(f"- {f}" for f in failures) if failures else "(no failures)"
+
+    return (
+        "Here is the previous implementation of is_valid_password:\n"
+        "```python\n"
+        f"{prev_code}\n"
+        "```\n\n"
+        "The following test failures were observed:\n"
+        f"{failures_text}\n\n"
+        "Please rewrite the function to fix these issues."
+    )
 
 
 def apply_reflexion(
