@@ -11,8 +11,8 @@ Fill out all of the `TODO`s in this file.
 
 ## SUBMISSION DETAILS
 
-Name: **TODO** 
-SUNet ID: **TODO** 
+Name: **TODO**
+SUNet ID: **TODO**
 Citations: **TODO**
 
 This assignment took me about **TODO** hours to do.
@@ -74,7 +74,13 @@ File: week2/tests/test_extract.py
 Prompt:
 
 ```
-TODO
+Refactor the code for clarity, safety, and testability without changing behavior. Goals:
+- Normalize naming and typing; remove dead code and duplication.
+
+- Improve comments/docstrings only where intent is non-obvious.
+- Keep interfaces stable; avoid scope creep or new features.
+- Add/adjust lightweight tests to lock in behavior.
+- Ensure consistent formatting, imports,  Minimize added code.
 ```
 
 Generated/Modified Code Snippets:
