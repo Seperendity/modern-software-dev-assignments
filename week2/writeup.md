@@ -27,7 +27,12 @@ TODO
 
 Generated Code Snippets:
 ```
-TODO: List all modified code files with the relevant line numbers.
+File: week2/app/services/extract.py
+- Lines 12-31: Added Ollama model configuration (`DEFAULT_OLLAMA_MODEL`) and JSON schema `LLM_RESPONSE_FORMAT` for structured outputs.
+- Lines 33-41: Added `LLM_SYSTEM_PROMPT` describing extraction behavior.
+- Lines 84-95: Added `_dedupe_preserve_order` helper to reuse ordering logic across heuristics and LLM flows.
+- Lines 98-117: Added `_parse_llm_items()` to parse and normalize structured responses (includes defensive JSON parsing).
+- Lines 120-162: Implemented `extract_action_items_llm()` performing Ollama chat call with retries, structured response parsing, and heuristic fallback.
 ```
 
 ### Exercise 2: Add Unit Tests
@@ -38,7 +43,13 @@ TODO
 
 Generated Code Snippets:
 ```
-TODO: List all modified code files with the relevant line numbers.
+File: week2/tests/test_extract.py
+- Lines 1-7: Added imports for `json`, `types`, `pytest`, and `extract_action_items_llm`.
+- Lines 18-22: Added `_DummyResponse` helper for mocking Ollama responses.
+- Lines 25-40: Added `test_extract_action_items_llm_bullet_input` to validate simple bullet extraction via mocked LLM.
+- Lines 43-58: Added `test_extract_action_items_llm_keyword_lines` covering keyword-prefixed notes.
+- Lines 61-69: Added `test_extract_action_items_llm_empty_input` ensuring no LLM call for blank text.
+- Lines 72-82: Added `test_extract_action_items_llm_fallback_on_invalid_response` to assert heuristic fallback when LLM output is invalid JSON.
 ```
 
 ### Exercise 3: Refactor Existing Code for Clarity

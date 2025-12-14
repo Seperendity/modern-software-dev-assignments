@@ -10,6 +10,38 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+DEFAULT_OLLAMA_MODEL = (
+    os.getenv("OLLAMA_ACTION_MODEL")
+    or os.getenv("OLLAMA_MODEL")
+    or "llama3.1:8b"
+)
+
+LLM_RESPONSE_FORMAT: dict[str, Any] = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "action_items",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "action_items": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Ordered action items extracted verbatim or lightly paraphrased from the notes.",
+                }
+            },
+            "required": ["action_items"],
+            "additionalProperties": False,
+        },
+    },
+}
+
+LLM_SYSTEM_PROMPT = """\
+You extract concrete action items from meeting transcripts, tickets, or unstructured notes.
+Return succinct bullet-friendly fragments and preserve the order they appear.
+Only include actionable work. If none exist, return an empty list.
+Output must follow the provided JSON schema exactly.
+"""
+
 BULLET_PREFIX_PATTERN = re.compile(r"^\s*([-*•]|\d+\.)\s+")
 KEYWORD_PREFIXES = (
     "todo:",
@@ -54,16 +86,7 @@ def extract_action_items(text: str) -> List[str]:
                 continue
             if _looks_imperative(s):
                 extracted.append(s)
-    # Deduplicate while preserving order
-    seen: set[str] = set()
-    unique: List[str] = []
-    for item in extracted:
-        lowered = item.lower()
-        if lowered in seen:
-            continue
-        seen.add(lowered)
-        unique.append(item)
-    return unique
+    return _dedupe_preserve_order(extracted)
 
 
 def _looks_imperative(sentence: str) -> bool:
@@ -87,3 +110,80 @@ def _looks_imperative(sentence: str) -> bool:
         "investigate",
     }
     return first.lower() in imperative_starters
+
+
+def _dedupe_preserve_order(items: List[str]) -> List[str]:
+    seen: set[str] = set()
+    unique: List[str] = []
+    for item in items:
+        normalized = item.strip()
+        if not normalized:
+            continue
+        lowered = normalized.lower()
+        if lowered in seen:
+            continue
+        seen.add(lowered)
+        unique.append(normalized)
+    return unique
+
+
+def _parse_llm_items(payload: Any) -> List[str] | None:
+    if isinstance(payload, str):
+        try:
+            payload = json.loads(payload)
+        except json.JSONDecodeError:
+            return None
+    if not isinstance(payload, dict):
+        return None
+    raw_items = payload.get("action_items", [])
+    if not isinstance(raw_items, list):
+        return None
+    cleaned: List[str] = []
+    for candidate in raw_items:
+        if not isinstance(candidate, str):
+            continue
+        cleaned_line = candidate.strip()
+        if not cleaned_line:
+            continue
+        cleaned.append(cleaned_line)
+    return _dedupe_preserve_order(cleaned)
+
+
+def extract_action_items_llm(text: str, *, model: str | None = None, max_retries: int = 2) -> List[str]:
+    """Use an Ollama-hosted LLM to extract actionable items with structured output."""
+    note_text = text.strip()
+    if not note_text:
+        return []
+    chosen_model = model or DEFAULT_OLLAMA_MODEL
+    if not chosen_model:
+        raise ValueError("An Ollama model name must be provided for LLM extraction.")
+
+    messages = [
+        {"role": "system", "content": LLM_SYSTEM_PROMPT},
+        {
+            "role": "user",
+            "content": (
+                "Identify the actionable tasks contained in the notes below. "
+                "Only return concrete next steps.\n\n"
+                f"Notes:\n{note_text}"
+            ),
+        },
+    ]
+
+    last_error: Exception | None = None
+    for _ in range(max_retries):
+        try:
+            response = chat(
+                model=chosen_model,
+                messages=messages,
+                format=LLM_RESPONSE_FORMAT,
+                options={"temperature": 0.1},
+            )
+        except Exception as exc:  # pragma: no cover - network/engine failure path
+            last_error = exc
+            continue
+        parsed = _parse_llm_items(response.message.content)
+        if parsed is not None:
+            return parsed
+    # Fall back to heuristics if the LLM call keeps failing, keeping the API usable.
+    return extract_action_items(text)
