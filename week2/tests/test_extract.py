@@ -75,4 +75,5 @@ def test_extract_action_items_llm_fallback_on_invalid_response(monkeypatch):
 
     # Should fall back to heuristic extractor when parsing fails
     items = extract_action_items_llm(text, model="mock-model")
-    assert "build CLI" in [item.lower() for item in items]
+    lowered = [item.lower() for item in items]
+    assert "build cli" in lowered
